@@ -1,5 +1,10 @@
 ---
 subcategory: "Identity Governance"
+layout: "azuread"
+page_title: "AzureAD: access_package"
+sidebar_current: "docs-azuread-resource-access-package"
+description: |-
+  Manages a V3 Qos association resource within AzureAD.
 ---
 
 # Resource: azuread_access_package
