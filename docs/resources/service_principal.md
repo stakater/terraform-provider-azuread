@@ -10,11 +10,11 @@ Manages a service principal associated with an application within Azure Active D
 
 The following API permissions are required in order to use this resource.
 
-When authenticated with a service principal, this resource requires one of the following application roles: `Application.ReadWrite.All` or `Directory.ReadWrite.All`
+When authenticated with a service principal, this resource requires one of the following application roles: `Application.ReadWrite.OwnedBy` or `Application.ReadWrite.All`
 
-It may be possible to manage service principals whilst having only the `Application.ReadWrite.OwnedBy` role granted, however you must ensure that both the underlying application and the service principal have the Terraform principal as an owner.
+-> When using the `Application.ReadWrite.OwnedBy` application role, the principal being used to run Terraform must be an owner of _both_ the linked application registration, _and_ the service principal being managed.
 
-When authenticated with a user principal, this resource requires one of the following directory roles: `Application Administrator` or `Global Administrator`
+When authenticated with a user principal, this resource may require one of the following directory roles: `Application Administrator` or `Global Administrator`
 
 ## Example Usage
 
@@ -29,7 +29,7 @@ resource "azuread_application" "example" {
 }
 
 resource "azuread_service_principal" "example" {
-  application_id               = azuread_application.example.application_id
+  client_id                    = azuread_application.example.client_id
   app_role_assignment_required = false
   owners                       = [data.azuread_client_config.current.object_id]
 }
@@ -46,7 +46,7 @@ resource "azuread_application" "example" {
 }
 
 resource "azuread_service_principal" "example" {
-  application_id               = azuread_application.example.application_id
+  client_id                    = azuread_application.example.client_id
   app_role_assignment_required = false
   owners                       = [data.azuread_client_config.current.object_id]
 
@@ -63,8 +63,8 @@ resource "azuread_service_principal" "example" {
 data "azuread_application_published_app_ids" "well_known" {}
 
 resource "azuread_service_principal" "msgraph" {
-  application_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
-  use_existing   = true
+  client_id    = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
+  use_existing = true
 }
 ```
 
@@ -81,8 +81,8 @@ resource "azuread_application" "example" {
 }
 
 resource "azuread_service_principal" "example" {
-  application_id = azuread_application.example.application_id
-  use_existing   = true
+  client_id    = azuread_application.example.client_id
+  use_existing = true
 }
 ```
 
@@ -93,7 +93,7 @@ The following arguments are supported:
 * `account_enabled` - (Optional) Whether or not the service principal account is enabled. Defaults to `true`.
 * `alternative_names` - (Optional) A set of alternative names, used to retrieve service principals by subscription, identify resource group and full resource ids for managed identities.
 * `app_role_assignment_required` - (Optional) Whether this service principal requires an app role assignment to a user or group before Azure AD will issue a user or access token to the application. Defaults to `false`.
-* `application_id` - (Required) The application ID (client ID) of the application for which to create a service principal.
+* `client_id` - (Required) The client ID of the application for which to create a service principal.
 * `description` - (Optional) A description of the service principal provided for internal end-users.
 * `feature_tags` - (Optional) A `feature_tags` block as described below. Cannot be used together with the `tags` property.
 
@@ -174,10 +174,19 @@ In addition to all arguments above, the following attributes are exported:
 * `user_consent_display_name` - Display name for the delegated permission that appears in the end user consent experience.
 * `value` - The value that is used for the `scp` claim in OAuth 2.0 access tokens.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `create` - (Defaults to 10 minutes) Used when creating the resource.
+* `read` - (Defaults to 5 minutes) Used when retrieving the resource.
+* `update` - (Defaults to 10 minutes) Used when updating the resource.
+* `delete` - (Defaults to 5 minutes) Used when deleting the resource.
+
 ## Import
 
 Service principals can be imported using their object ID, e.g.
 
 ```shell
-terraform import azuread_service_principal.test 00000000-0000-0000-0000-000000000000
+terraform import azuread_service_principal.example 00000000-0000-0000-0000-000000000000
 ```

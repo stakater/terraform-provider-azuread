@@ -6,15 +6,19 @@ subcategory: "Applications"
 
 Manages an application registration within Azure Active Directory.
 
+For a more lightweight alternative, please see the [azuread_application_registration](application_registration.html) resource. Please note that this resource should not be used together with the `azuread_application_registration` resource when managing the same application.
+
 ## API Permissions
 
 The following API permissions are required in order to use this resource.
 
-When authenticated with a service principal, this resource requires the following application role: `Application.ReadWrite.All`
+When authenticated with a service principal, this resource requires one of the following application roles: `Application.ReadWrite.OwnedBy` or `Application.ReadWrite.All`
 
--> It is usually possible to create applications using this resource with just the `Application.ReadWrite.OwnedBy` application role, provided the principal being used to run Terraform is included in the `owners` property. However, this is not officially supported by the API so if you receive a `403` you need to investigate what API call is failing and add additional permissions as necessary. One commonly needed additional permission is `User.Read.All`, in case you specify additional `owners`.
+-> When using the `Application.ReadWrite.OwnedBy` application role, you should ensure that the principal being used to run Terraform is included in the `owners` property.
 
-When authenticated with a user principal, this resource requires one of the following directory roles: `Application Administrator` or `Global Administrator`
+Additionally, you may need the `User.Read.All` application role when including user principals in the `owners` property.
+
+When authenticated with a user principal, this resource may require one of the following directory roles: `Application Administrator` or `Global Administrator`
 
 ## Example Usage
 
@@ -140,6 +144,33 @@ resource "azuread_application" "example" {
 }
 ```
 
+*Create application and generate a password*
+
+```terraform
+data "azuread_client_config" "current" {}
+
+resource "time_rotating" "example" {
+  rotation_days = 180
+}
+
+resource "azuread_application" "example" {
+  display_name = "example"
+  owners       = [data.azuread_client_config.current.object_id]
+
+  password {
+    display_name = "MySecret-1"
+    start_date   = time_rotating.example.id
+    end_date     = timeadd(time_rotating.example.id, "4320h")
+  }
+}
+
+output "example_password" {
+  sensitive = true
+  value     = tolist(azuread_application.example.password).0.value
+}
+
+```
+
 *Create application from a gallery template*
 
 ```terraform
@@ -153,8 +184,8 @@ resource "azuread_application" "example" {
 }
 
 resource "azuread_service_principal" "example" {
-  application_id = azuread_application.example.application_id
-  use_existing   = true
+  client_id    = azuread_application.example.client_id
+  use_existing = true
 }
 ```
 
@@ -172,7 +203,7 @@ The following arguments are supported:
 
 -> **Features and Tags** Features are configured for an application using tags, and are provided as a shortcut to set the corresponding magic tag value for each feature. You cannot configure `feature_tags` and `tags` for an application at the same time, so if you need to assign additional custom tags it's recommended to use the `tags` property instead. Tag values also propagate to any linked service principals.
 
-* `group_membership_claims` - (Optional) Configures the `groups` claim issued in a user or OAuth 2.0 access token that the app expects. Possible values are `None`, `SecurityGroup`, `DirectoryRole`, `ApplicationGroup` or `All`.
+* `group_membership_claims` - (Optional) A set of strings containing membership claims issued in a user or OAuth 2.0 access token that the app expects. Possible values are `None`, `SecurityGroup`, `DirectoryRole`, `ApplicationGroup` or `All`.
 * `identifier_uris` - (Optional) A set of user-defined URI(s) that uniquely identify an application within its Azure AD tenant, or within a verified custom domain if the application is multi-tenant.
 * `logo_image` - (Optional) A logo image to upload for the application, as a raw base64-encoded string. The image should be in gif, jpeg or png format. Note that once an image has been uploaded, it is not possible to remove it without replacing it with another image.
 * `marketing_url` - (Optional) URL of the application's marketing page.
@@ -182,6 +213,10 @@ The following arguments are supported:
 * `owners` - (Optional) A set of object IDs of principals that will be granted ownership of the application. Supported object types are users or service principals. By default, no owners are assigned.
 
 -> **Ownership of Applications** It's recommended to always specify one or more application owners, including the principal being used to execute Terraform, such as in the example above.
+
+* `password` - (Optional) A single `password` block as documented below. The password is generated during creation. By default, no password is generated.
+
+-> **Creating a Password** The `password` block supports a single password for the application, and is provided so that a password can be generated when a new application is created. This helps to make new applications available for authentication more quickly. To add additional passwords to an application, see the [azuread_application_password](application_password.html) resource.
 
 * `prevent_duplicate_names` - (Optional) If `true`, will return an error if an existing application is found with the same name. Defaults to `false`.
 * `privacy_statement_url` - (Optional) URL of the application's privacy statement.
@@ -199,6 +234,9 @@ The following arguments are supported:
 -> **Tags and Features** Azure Active Directory uses special tag values to configure the behavior of applications. These can be specified using either the `tags` property or with the `feature_tags` block. If you need to set any custom tag values not supported by the `feature_tags` block, it's recommended to use the `tags` property. Tag values also propagate to any linked service principals.
 
 * `template_id` - (Optional) Unique ID for a templated application in the Azure AD App Gallery, from which to create the application. Changing this forces a new resource to be created.
+
+-> **Tip for Gallery Applications** This resource can  be used to instantiate a gallery application, however it will also attempt to manage the properties of the resulting application. If this is not desired, consider using the [azuread_application_registration](application_registration.html) resource instead.
+
 * `terms_of_service_url` - (Optional) URL of the application's terms of service statement.
 * `web` - (Optional) A `web` block as documented below, which configures web related settings for this application.
 
@@ -270,10 +308,18 @@ The following arguments are supported:
 
 `access_token`, `id_token` and `saml2_token` blocks support the following:
 
-* `additional_properties` - List of additional properties of the claim. If a property exists in this list, it modifies the behaviour of the optional claim.
+* `additional_properties` - List of additional properties of the claim. If a property exists in this list, it modifies the behaviour of the optional claim. Possible values are: `cloud_displayname`, `dns_domain_and_sam_account_name`, `emit_as_roles`, `include_externally_authenticated_upn_without_hash`, `include_externally_authenticated_upn`, `max_size_limit`, `netbios_domain_and_sam_account_name`, `on_premise_security_identifier`, `sam_account_name`, and `use_guid`.
 * `essential` - Whether the claim specified by the client is necessary to ensure a smooth authorization experience.
 * `name` - The name of the optional claim.
 * `source` - The source of the claim. If `source` is absent, the claim is a predefined optional claim. If `source` is `user`, the value of `name` is the extension property from the user object.
+
+---
+
+`password` block supports the following:
+
+* `display_name` - (Required) A display name for the password. Changing this field forces a new resource to be created.
+* `end_date` - (Optional) The end date until which the password is valid, formatted as an RFC3339 date string (e.g. `2018-01-01T01:02:03Z`). Changing this field forces a new resource to be created.
+* `start_date` - (Optional) The start date from which the password is valid, formatted as an RFC3339 date string (e.g. `2018-01-01T01:02:03Z`). If this isn't specified, the current date is used.  Changing this field forces a new resource to be created.
 
 ---
 
@@ -319,22 +365,43 @@ The following arguments are supported:
 * `access_token_issuance_enabled` - (Optional) Whether this web application can request an access token using OAuth 2.0 implicit flow.
 * `id_token_issuance_enabled` - (Optional) Whether this web application can request an ID token using OAuth 2.0 implicit flow.
 
+---
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `app_role_ids` - A mapping of app role values to app role IDs, intended to be useful when referencing app roles in other resources in your configuration.
-* `application_id` - The Application ID (also called Client ID).
+* `client_id` - The Client ID for the application.
 * `disabled_by_microsoft` - Whether Microsoft has disabled the registered application. If the application is disabled, this will be a string indicating the status/reason, e.g. `DisabledDueToViolationOfServicesAgreement`
+* `id` - The Terraform resource ID for the application, for use when referencing this resource in your Terraform configuration.
 * `logo_url` - CDN URL to the application's logo, as uploaded with the `logo_image` property.
 * `oauth2_permission_scope_ids` - A mapping of OAuth2.0 permission scope values to scope IDs, intended to be useful when referencing permission scopes in other resources in your configuration.
 * `object_id` - The application's object ID.
+* `password` - A `password` block as documented below. Note that this block is a set rather than a list, and you will need to convert or iterate it to address its attributes (see the usage example above).
 * `publisher_domain` - The verified publisher domain for the application.
+* `publisher_domain` - The verified publisher domain for the application.
+
+---
+
+`password` block exports the following:
+
+* `key_id` - (Required) The unique key ID for the generated password.
+* `value` - (Required) The generated password for the application.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `create` - (Defaults to 10 minutes) Used when creating the resource.
+* `read` - (Defaults to 5 minutes) Used when retrieving the resource.
+* `update` - (Defaults to 10 minutes) Used when updating the resource.
+* `delete` - (Defaults to 5 minutes) Used when deleting the resource.
 
 ## Import
 
-Applications can be imported using their object ID, e.g.
+Applications can be imported using the object ID of the application, in the following format.
 
 ```shell
-terraform import azuread_application.test 00000000-0000-0000-0000-000000000000
+terraform import azuread_application.example /applications/00000000-0000-0000-0000-000000000000
 ```

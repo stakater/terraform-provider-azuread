@@ -28,15 +28,15 @@ output "published_app_ids" {
 data "azuread_application_published_app_ids" "well_known" {}
 
 resource "azuread_service_principal" "msgraph" {
-  application_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
-  use_existing   = true
+  client_id    = data.azuread_application_published_app_ids.well_known.result["MicrosoftGraph"]
+  use_existing = true
 }
 
 resource "azuread_application" "example" {
   display_name = "example"
 
   required_resource_access {
-    resource_app_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
+    resource_app_id = data.azuread_application_published_app_ids.well_known.result["MicrosoftGraph"]
 
     resource_access {
       id   = azuread_service_principal.msgraph.app_role_ids["User.Read.All"]
@@ -60,3 +60,9 @@ This data source does not have any arguments.
 The following attributes are exported:
 
 * `result` - A map of application names to application IDs.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `create` - (Defaults to 5 minutes) Used when creating the resource.

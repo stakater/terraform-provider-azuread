@@ -1,6 +1,10 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package provider
 
 import (
+	"github.com/hashicorp/terraform-provider-azuread/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azuread/internal/services/administrativeunits"
 	"github.com/hashicorp/terraform-provider-azuread/internal/services/applications"
 	"github.com/hashicorp/terraform-provider-azuread/internal/services/approleassignments"
@@ -13,12 +17,26 @@ import (
 	"github.com/hashicorp/terraform-provider-azuread/internal/services/invitations"
 	"github.com/hashicorp/terraform-provider-azuread/internal/services/policies"
 	"github.com/hashicorp/terraform-provider-azuread/internal/services/serviceprincipals"
+	"github.com/hashicorp/terraform-provider-azuread/internal/services/synchronization"
 	"github.com/hashicorp/terraform-provider-azuread/internal/services/userflows"
 	"github.com/hashicorp/terraform-provider-azuread/internal/services/users"
 )
 
-func SupportedServices() []ServiceRegistration {
-	return []ServiceRegistration{
+//go:generate go run ../tools/generator-services/main.go -path=../../
+
+func SupportedTypedServices() []sdk.TypedServiceRegistration {
+	return []sdk.TypedServiceRegistration{
+		applications.Registration{},
+		directoryroles.Registration{},
+		domains.Registration{},
+		policies.Registration{},
+		identitygovernance.Registration{},
+		serviceprincipals.Registration{},
+	}
+}
+
+func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
+	return []sdk.UntypedServiceRegistration{
 		administrativeunits.Registration{},
 		applications.Registration{},
 		approleassignments.Registration{},
@@ -31,6 +49,7 @@ func SupportedServices() []ServiceRegistration {
 		invitations.Registration{},
 		policies.Registration{},
 		serviceprincipals.Registration{},
+		synchronization.Registration{},
 		userflows.Registration{},
 		users.Registration{},
 	}

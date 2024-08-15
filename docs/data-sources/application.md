@@ -22,7 +22,7 @@ data "azuread_application" "example" {
 }
 
 output "application_object_id" {
-  value = data.azuread_application.example.id
+  value = data.azuread_application.example.object_id
 }
 ```
 
@@ -30,11 +30,12 @@ output "application_object_id" {
 
 The following arguments are supported:
 
-* `application_id` - (Optional) Specifies the Application ID (also called Client ID).
+* `client_id` - (Optional) Specifies the Client ID of the application.
 * `display_name` - (Optional) Specifies the display name of the application.
 * `object_id` - (Optional) Specifies the Object ID of the application.
+* `identifier_uri` - (Optional) Specifies any identifier URI of the application. See also the `identifier_uris` attribute which contains a list of all identifier URIs for the application.
 
-~> One of `object_id`, `application_id` or `display_name` must be specified.
+~> One of `client_id`, `display_name`, `object_id`, or `identifier_uri` must be specified.
 
 ## Attributes Reference
 
@@ -43,7 +44,7 @@ The following attributes are exported:
 * `api` - An `api` block as documented below.
 * `app_role_ids` - A mapping of app role values to app role IDs, intended to be useful when referencing app roles in other resources in your configuration.
 * `app_roles` - A collection of `app_role` blocks as documented below. For more information see [official documentation on Application Roles](https://docs.microsoft.com/en-us/azure/architecture/multitenant-identity/app-roles).
-* `application_id` - The Application ID (also called Client ID).
+* `client_id` - The Client ID for the application.
 * `description` - A description of the application, as shown to end users.
 * `device_only_auth_enabled` - Specifies whether this application supports device authentication without a user.
 * `disabled_by_microsoft` - Whether Microsoft has disabled the registered application. If the application is disabled, this will be a string indicating the status/reason, e.g. `DisabledDueToViolationOfServicesAgreement`
@@ -51,6 +52,7 @@ The following attributes are exported:
 * `fallback_public_client_enabled` - The fallback application type as public client, such as an installed application running on a mobile device.
 * `feature_tags` - A `features` block as described below.
 * `group_membership_claims` - The `groups` claim issued in a user or OAuth 2.0 access token that the app expects.
+* `id` - The Terraform resource ID for the application, for use when referencing this data source in your Terraform configuration.
 * `identifier_uris` - A list of user-defined URI(s) that uniquely identify a Web application within it's Azure AD tenant, or within a verified custom domain if the application is multi-tenant.
 * `logo_url` - CDN URL to the application's logo.
 * `notes` - User-specified notes relevant for the management of the application.
@@ -172,3 +174,9 @@ The following attributes are exported:
 
 * `access_token_issuance_enabled` - Whether this web application can request an access token using OAuth 2.0 implicit flow.
 * `id_token_issuance_enabled` - Whether this web application can request an ID token using OAuth 2.0 implicit flow.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `create` - (Defaults to 5 minutes) Used when creating the resource.

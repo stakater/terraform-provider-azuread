@@ -22,6 +22,11 @@ func (s StringNullWhenEmpty) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(s))
 }
 
+type KeyValueObject struct {
+	Key   *string `json:"key,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
 type AccessPackageCatalogState = string
 
 const (
@@ -67,7 +72,7 @@ const (
 	AccessPackageRequestStateSubmitted           AccessPackageRequestState = "submitted"
 	AccessPackageRequestStatePendingApproval     AccessPackageRequestState = "pendingApproval"
 	AccessPackageRequestStateDelivering          AccessPackageRequestState = "delivering"
-	AccessPackageRequestStateDelivered           AccessPackageRequestState = "delievered"
+	AccessPackageRequestStateDelivered           AccessPackageRequestState = "delivered"
 	AccessPackageRequestStateDeliveryFailed      AccessPackageRequestState = "deliveryFailed"
 	AccessPackageRequestStateDenied              AccessPackageRequestState = "denied"
 	AccessPackageRequestStateScheduled           AccessPackageRequestState = "scheduled"
@@ -79,7 +84,7 @@ type AccessPackageRequestType = string
 
 const (
 	AccessPackageRequestTypeNotSpecified AccessPackageRequestType = "notSpecified"
-	AccessPackageRequestTypeuserAdd      AccessPackageRequestType = "userAdd"
+	AccessPackageRequestTypeUserAdd      AccessPackageRequestType = "userAdd"
 	AccessPackageRequestTypeUserExtend   AccessPackageRequestType = "UserExtend"
 	AccessPackageRequestTypeUserUpdate   AccessPackageRequestType = "userUpdate"
 	AccessPackageRequestTypeUserRemove   AccessPackageRequestType = "userRemove"
@@ -131,18 +136,19 @@ const (
 type AccessReviewReviewerType = string
 
 const (
-	AccessReviewReviewerTypeSelf      AccessReviewReviewerType = "Self"
+	AccessReviewReviewerTypeManager   AccessReviewReviewerType = "Manager"
 	AccessReviewReviewerTypeReviewers AccessReviewReviewerType = "Reviewers"
+	AccessReviewReviewerTypeSelf      AccessReviewReviewerType = "Self"
 )
 
-type AccessReviewRecurranceType = string
+type AccessReviewRecurrenceType = string
 
 const (
-	AccessReviewRecurranceTypeWeekly     AccessReviewRecurranceType = "weekly"
-	AccessReviewRecurranceTypeMonthly    AccessReviewRecurranceType = "monthly"
-	AccessReviewRecurranceTypeQuarterly  AccessReviewRecurranceType = "quarterly"
-	AccessReviewRecurranceTypeHalfYearly AccessReviewRecurranceType = "halfyearly"
-	AccessReviewRecurranceTypeAnnual     AccessReviewRecurranceType = "annual"
+	AccessReviewRecurrenceTypeWeekly     AccessReviewRecurrenceType = "weekly"
+	AccessReviewRecurrenceTypeMonthly    AccessReviewRecurrenceType = "monthly"
+	AccessReviewRecurrenceTypeQuarterly  AccessReviewRecurrenceType = "quarterly"
+	AccessReviewRecurrenceTypeHalfYearly AccessReviewRecurrenceType = "halfyearly"
+	AccessReviewRecurrenceTypeAnnual     AccessReviewRecurrenceType = "annual"
 )
 
 type AdministrativeUnitVisibility = string
@@ -226,6 +232,15 @@ const (
 	ApprovalModeSingleStage ApprovalMode = "SingleStage"
 )
 
+type ApprovalStepStatus = string
+
+const (
+	ApprovalStepStatusInProgress   ApprovalStepStatus = "InProgress"
+	ApprovalStepStatusInitializing ApprovalStepStatus = "Initializing"
+	ApprovalStepStatusCompleted    ApprovalStepStatus = "Completed"
+	ApprovalStepStatusExpired      ApprovalStepStatus = "Expired"
+)
+
 type AttestationLevel = string
 
 const (
@@ -251,12 +266,42 @@ const (
 	AuthenticationMethodKeyStrengthUnknown AuthenticationMethodKeyStrength = "unknown"
 )
 
+type AuthenticationMethodModes = string
+
+const (
+	AuthenticationMethodModesEmail                       AuthenticationMethodModes = "email"
+	AuthenticationMethodModesFederatedMultiFactor        AuthenticationMethodModes = "federatedMultiFactor"
+	AuthenticationMethodModesFederatedSingleFactor       AuthenticationMethodModes = "federatedSingleFactor"
+	AuthenticationMethodModesFido2                       AuthenticationMethodModes = "fido2"
+	AuthenticationMethodModesHardwareOath                AuthenticationMethodModes = "hardwareOath"
+	AuthenticationMethodModesMicrosoftAuthenticatorPush  AuthenticationMethodModes = "microsoftAuthenticatorPush"
+	AuthenticationMethodModesMicrosoftDeviceBasedPush    AuthenticationMethodModes = "deviceBasedPush"
+	AuthenticationMethodModesPassword                    AuthenticationMethodModes = "password"
+	AuthenticationMethodModesSms                         AuthenticationMethodModes = "sms"
+	AuthenticationMethodModesSoftwareOath                AuthenticationMethodModes = "softwareOath"
+	AuthenticationMethodModesTemporaryAccessPassMultiUse AuthenticationMethodModes = "temporaryAccessPassMultiUse"
+	AuthenticationMethodModesTemporaryAccessPassOneTime  AuthenticationMethodModes = "temporaryAccessPassOneTime"
+	AuthenticationMethodModesUnknownFutureValue          AuthenticationMethodModes = "unknownFutureValue"
+	AuthenticationMethodModesVoice                       AuthenticationMethodModes = "voice"
+	AuthenticationMethodModesWindowsHelloForBusiness     AuthenticationMethodModes = "windowsHelloForBusiness"
+	AuthenticationMethodModesX509CertificateMultiFactor  AuthenticationMethodModes = "x509CertificateMultiFactor"
+	AuthenticationMethodModesX509CertificateSingleFactor AuthenticationMethodModes = "x509CertificateSingleFactor"
+)
+
 type AuthenticationPhoneType = string
 
 const (
 	AuthenticationPhoneTypeMobile          AuthenticationPhoneType = "mobile"
 	AuthenticationPhoneTypeAlternateMobile AuthenticationPhoneType = "alternateMobile"
 	AuthenticationPhoneTypeOffice          AuthenticationPhoneType = "office"
+)
+
+type AuthenticationStrengthPolicyType = string
+
+const (
+	AuthenticationStrengthPolicyTypeBuiltIn            AuthenticationStrengthPolicyType = "builtIn"
+	AuthenticationStrengthPolicyTypeCustom             AuthenticationStrengthPolicyType = "custom"
+	AuthenticationStrengthPolicyTypeUnknownFutureValue AuthenticationStrengthPolicyType = "unknownFutureValue"
 )
 
 type BodyType = string
@@ -281,6 +326,14 @@ const (
 	CredentialUsageSummaryPeriod30 CredentialUsageSummaryPeriod = "D30"
 	CredentialUsageSummaryPeriod7  CredentialUsageSummaryPeriod = "D7"
 	CredentialUsageSummaryPeriod1  CredentialUsageSummaryPeriod = "D1"
+)
+
+type ConditionalAccessAuthenticationType = string
+
+const (
+	ConditionalAccessAuthenticationTypePrimaryAndSecondaryAuthentication ConditionalAccessAuthenticationType = "primaryAndSecondaryAuthentication"
+	ConditionalAccessAuthenticationTypeSecondaryAuthentication           ConditionalAccessAuthenticationType = "secondaryAuthentication"
+	ConditionalAccessAuthenticationTypeUnknownFutureValue                ConditionalAccessAuthenticationType = "unknownFutureValue"
 )
 
 type ConditionalAccessClientAppType = string
@@ -336,6 +389,21 @@ const (
 	ConditionalAccessFilterModeInclude ConditionalAccessFilterMode = "include"
 )
 
+type ConditionalAccessFrequencyInterval = string
+
+const (
+	ConditionalAccessFrequencyIntervalTimeBased          ConditionalAccessFrequencyInterval = "timeBased"
+	ConditionalAccessFrequencyIntervalEveryTime          ConditionalAccessFrequencyInterval = "everyTime"
+	ConditionalAccessFrequencyIntervalUnknownFutureValue ConditionalAccessFrequencyInterval = "unknownFutureValue"
+)
+
+type ConditionalAccessFrequencyType = string
+
+const (
+	ConditionalAccessFrequencyTypeDays  ConditionalAccessFrequencyType = "days"
+	ConditionalAccessFrequencyTypeHours ConditionalAccessFrequencyType = "hours"
+)
+
 type ConditionalAccessGrantControl = string
 
 const (
@@ -366,6 +434,27 @@ const (
 	ConditionalAccessRiskLevelMedium             ConditionalAccessRiskLevel = "medium"
 	ConditionalAccessRiskLevelNone               ConditionalAccessRiskLevel = "none"
 	ConditionalAccessRiskLevelUnknownFutureValue ConditionalAccessRiskLevel = "unknownFutureValue"
+)
+
+type ConditionalAccessGuestOrExternalUserType = string
+
+const (
+	ConditionalAccessGuestOrExternalUserTypeNone                   ConditionalAccessGuestOrExternalUserType = "none"
+	ConditionalAccessGuestOrExternalUserTypeInternalGuest          ConditionalAccessGuestOrExternalUserType = "internalGuest"
+	ConditionalAccessGuestOrExternalUserTypeB2bCollaborationGuest  ConditionalAccessGuestOrExternalUserType = "b2bCollaborationGuest"
+	ConditionalAccessGuestOrExternalUserTypeB2bCollaborationMember ConditionalAccessGuestOrExternalUserType = "b2bCollaborationMember"
+	ConditionalAccessGuestOrExternalUserTypeB2bDirectConnectUser   ConditionalAccessGuestOrExternalUserType = "b2bDirectConnectUser"
+	ConditionalAccessGuestOrExternalUserTypeOtherExternalUser      ConditionalAccessGuestOrExternalUserType = "otherExternalUser"
+	ConditionalAccessGuestOrExternalUserTypeServiceProvider        ConditionalAccessGuestOrExternalUserType = "serviceProvider"
+	ConditionalAccessGuestOrExternalUserTypeUnknownFutureValue     ConditionalAccessGuestOrExternalUserType = "unknownFutureValue"
+)
+
+type ConditionalAccessExternalTenantsMembershipKind = string
+
+const (
+	ConditionalAccessExternalTenantsMembershipKindAll                ConditionalAccessExternalTenantsMembershipKind = "all"
+	ConditionalAccessExternalTenantsMembershipKindEnumerated         ConditionalAccessExternalTenantsMembershipKind = "enumerated"
+	ConditionalAccessExternalTenantsMembershipKindUnknownFutureValue ConditionalAccessExternalTenantsMembershipKind = "unknownFutureValue"
 )
 
 type ConnectedOrganizationState = string
@@ -521,7 +610,10 @@ type GroupResourceBehaviorOption = string
 
 const (
 	GroupResourceBehaviorOptionAllowOnlyMembersToPost                   GroupResourceBehaviorOption = "AllowOnlyMembersToPost"
+	GroupResourceBehaviorOptionCalendarMemberReadOnly                   GroupResourceBehaviorOption = "CalendarMemberReadOnly"
+	GroupResourceBehaviorOptionConnectorsDisabled                       GroupResourceBehaviorOption = "ConnectorsDisabled"
 	GroupResourceBehaviorOptionHideGroupInOutlook                       GroupResourceBehaviorOption = "HideGroupInOutlook"
+	GroupResourceBehaviorOptionSkipExchangeInstantOn                    GroupResourceBehaviorOption = "SkipExchangeInstantOn"
 	GroupResourceBehaviorOptionSubscribeMembersToCalendarEventsDisabled GroupResourceBehaviorOption = "SubscribeMembersToCalendarEventsDisabled"
 	GroupResourceBehaviorOptionSubscribeNewGroupMembers                 GroupResourceBehaviorOption = "SubscribeNewGroupMembers"
 	GroupResourceBehaviorOptionWelcomeEmailDisabled                     GroupResourceBehaviorOption = "WelcomeEmailDisabled"
@@ -665,6 +757,74 @@ const (
 	PreferredSingleSignOnModeSaml         PreferredSingleSignOnMode = "saml"
 )
 
+type PrivilegedAccessGroupAction = string
+
+const (
+	PrivilegedAccessGroupActionAdminAssign    PrivilegedAccessGroupAction = "adminAssign"
+	PrivilegedAccessGroupActionAdminUpdate    PrivilegedAccessGroupAction = "adminUpdate"
+	PrivilegedAccessGroupActionAdminRemove    PrivilegedAccessGroupAction = "adminRemove"
+	PrivilegedAccessGroupActionAdminExtend    PrivilegedAccessGroupAction = "adminExtend"
+	PrivilegedAccessGroupActionAdminRenew     PrivilegedAccessGroupAction = "adminRenew"
+	PrivilegedAccessGroupActionSelfActivate   PrivilegedAccessGroupAction = "selfActivate"
+	PrivilegedAccessGroupActionSelfDeactivate PrivilegedAccessGroupAction = "selfDeactivate"
+)
+
+type PrivilegedAccessGroupAssignmentType = string
+
+const (
+	PrivilegedAccessGroupAssignmentAssigned  PrivilegedAccessGroupAssignmentType = "assigned"
+	PrivilegedAccessGroupAssignmentActivated PrivilegedAccessGroupAssignmentType = "activated"
+	PrivilegedAccessGroupAssignmentUnknown   PrivilegedAccessGroupAssignmentType = "unknownFutureValue"
+)
+
+type PrivilegedAccessGroupAssignmentStatus = string
+
+const (
+	PrivilegedAccessGroupAssignmentStatusCanceled                 PrivilegedAccessGroupAssignmentStatus = "Canceled"
+	PrivilegedAccessGroupAssignmentStatusDenied                   PrivilegedAccessGroupAssignmentStatus = "Denied"
+	PrivilegedAccessGroupAssignmentStatusFailed                   PrivilegedAccessGroupAssignmentStatus = "Failed"
+	PrivilegedAccessGroupAssignmentStatusGranted                  PrivilegedAccessGroupAssignmentStatus = "Granted"
+	PrivilegedAccessGroupAssignmentStatusPendingAdminDecision     PrivilegedAccessGroupAssignmentStatus = "PendingAdminDecision"
+	PrivilegedAccessGroupAssignmentStatusPendingApproval          PrivilegedAccessGroupAssignmentStatus = "PendingApproval"
+	PrivilegedAccessGroupAssignmentStatusPendingProvisioning      PrivilegedAccessGroupAssignmentStatus = "PendingProvisioning"
+	PrivilegedAccessGroupAssignmentStatusPendingScheduledCreation PrivilegedAccessGroupAssignmentStatus = "PendingScheduleCreation"
+	PrivilegedAccessGroupAssignmentStatusProvisioned              PrivilegedAccessGroupAssignmentStatus = "Provisioned"
+	PrivilegedAccessGroupAssignmentStatusRevoked                  PrivilegedAccessGroupAssignmentStatus = "Revoked"
+	PrivilegedAccessGroupAssignmentStatusScheduleCreated          PrivilegedAccessGroupAssignmentStatus = "ScheduleCreated"
+)
+
+type PrivilegedAccessGroupEligibilityStatus = string
+
+const (
+	PrivilegedAccessGroupEligibilityStatusCanceled                 PrivilegedAccessGroupEligibilityStatus = "Canceled"
+	PrivilegedAccessGroupEligibilityStatusDenied                   PrivilegedAccessGroupEligibilityStatus = "Denied"
+	PrivilegedAccessGroupEligibilityStatusFailed                   PrivilegedAccessGroupEligibilityStatus = "Failed"
+	PrivilegedAccessGroupEligibilityStatusGranted                  PrivilegedAccessGroupEligibilityStatus = "Granted"
+	PrivilegedAccessGroupEligibilityStatusPendingAdminDecision     PrivilegedAccessGroupEligibilityStatus = "PendingAdminDecision"
+	PrivilegedAccessGroupEligibilityStatusPendingApproval          PrivilegedAccessGroupEligibilityStatus = "PendingApproval"
+	PrivilegedAccessGroupEligibilityStatusPendingProvisioning      PrivilegedAccessGroupEligibilityStatus = "PendingProvisioning"
+	PrivilegedAccessGroupEligibilityStatusPendingScheduledCreation PrivilegedAccessGroupEligibilityStatus = "PendingScheduleCreation"
+	PrivilegedAccessGroupEligibilityStatusProvisioned              PrivilegedAccessGroupEligibilityStatus = "Provisioned"
+	PrivilegedAccessGroupEligibilityStatusRevoked                  PrivilegedAccessGroupEligibilityStatus = "Revoked"
+	PrivilegedAccessGroupEligibilityStatusScheduleCreated          PrivilegedAccessGroupEligibilityStatus = "ScheduleCreated"
+)
+
+type PrivilegedAccessGroupMemberType = string
+
+const (
+	PrivilegedAccessGroupMemberDirect  PrivilegedAccessGroupMemberType = "direct"
+	PrivilegedAccessGroupMemberGroup   PrivilegedAccessGroupMemberType = "group"
+	PrivilegedAccessGroupMemberUnknown PrivilegedAccessGroupMemberType = "unknownFutureValue"
+)
+
+type PrivilegedAccessGroupRelationship = string
+
+const (
+	PrivilegedAccessGroupRelationshipOwner   PrivilegedAccessGroupRelationship = "owner"
+	PrivilegedAccessGroupRelationshipMember  PrivilegedAccessGroupRelationship = "member"
+	PrivilegedAccessGroupRelationshipUnknown PrivilegedAccessGroupRelationship = "unknownFutureValue"
+)
+
 type RecurrencePatternType = string
 
 const (
@@ -747,6 +907,79 @@ const (
 	SignInAudienceAzureADMultipleOrgs                SignInAudience = "AzureADMultipleOrgs"
 	SignInAudienceAzureADandPersonalMicrosoftAccount SignInAudience = "AzureADandPersonalMicrosoftAccount"
 	SignInAudiencePersonalMicrosoftAccount           SignInAudience = "PersonalMicrosoftAccount"
+)
+
+type UnifiedRoleScheduleRequestAction = string
+
+const (
+	UnifiedRoleScheduleRequestActionAdminAssign        UnifiedRoleScheduleRequestAction = "adminAssign"
+	UnifiedRoleScheduleRequestActionAdminExtend        UnifiedRoleScheduleRequestAction = "adminExtend"
+	UnifiedRoleScheduleRequestActionAdminRemove        UnifiedRoleScheduleRequestAction = "adminRemove"
+	UnifiedRoleScheduleRequestActionAdminRenew         UnifiedRoleScheduleRequestAction = "adminRenew"
+	UnifiedRoleScheduleRequestActionAdminUpdate        UnifiedRoleScheduleRequestAction = "adminUpdate"
+	UnifiedRoleScheduleRequestActionSelfActivate       UnifiedRoleScheduleRequestAction = "selfActivate"
+	UnifiedRoleScheduleRequestActionSelfDeactivate     UnifiedRoleScheduleRequestAction = "selfDeactivate"
+	UnifiedRoleScheduleRequestActionSelfExtend         UnifiedRoleScheduleRequestAction = "selfExtend"
+	UnifiedRoleScheduleRequestActionSelfRenew          UnifiedRoleScheduleRequestAction = "selfRenew"
+	UnifiedRoleScheduleRequestActionUnknownFutureValue UnifiedRoleScheduleRequestAction = "unknownFutureValue"
+)
+
+type UnifiedRoleManagementPolicyScope = string
+
+const (
+	UnifiedRoleManagementPolicyScopeDirectory     UnifiedRoleManagementPolicyScope = "Directory"
+	UnifiedRoleManagementPolicyScopeDirectoryRole UnifiedRoleManagementPolicyScope = "DirectoryRole"
+	UnifiedRoleManagementPolicyScopeGroup         UnifiedRoleManagementPolicyScope = "Group"
+)
+
+type UnifiedRoleManagementPolicyRuleTargetCallerType = string
+
+const (
+	UnifiedRoleManagementPolicyRuleTargetCallerTypeNone    UnifiedRoleManagementPolicyRuleTargetCallerType = "None"
+	UnifiedRoleManagementPolicyRuleTargetCallerTypeAdmin   UnifiedRoleManagementPolicyRuleTargetCallerType = "Admin"
+	UnifiedRoleManagementPolicyRuleTargetCallerTypeEndUser UnifiedRoleManagementPolicyRuleTargetCallerType = "EndUser"
+)
+
+type UnifiedRoleManagementPolicyRuleLevel = string
+
+const (
+	UnifiedRoleManagementPolicyRuleLevelEligibility UnifiedRoleManagementPolicyRuleLevel = "Eligibility"
+	UnifiedRoleManagementPolicyRuleLevelAssignment  UnifiedRoleManagementPolicyRuleLevel = "Assignment"
+)
+
+type UnifiedRoleManagementPolicyRuleNotificationLevel = string
+
+const (
+	UnifiedRoleManagementPolicyRuleNotificationLevelNone     UnifiedRoleManagementPolicyRuleNotificationLevel = "None"
+	UnifiedRoleManagementPolicyRuleNotificationLevelCritical UnifiedRoleManagementPolicyRuleNotificationLevel = "Critical"
+	UnifiedRoleManagementPolicyRuleNotificationLevelAll      UnifiedRoleManagementPolicyRuleNotificationLevel = "All"
+)
+
+type UnifiedRoleManagementPolicyRuleNotificationRecipientType = string
+
+const (
+	UnifiedRoleManagementPolicyRuleNotificationRecipientTypeRequestor UnifiedRoleManagementPolicyRuleNotificationRecipientType = "Requestor"
+	UnifiedRoleManagementPolicyRuleNotificationRecipientTypeApprover  UnifiedRoleManagementPolicyRuleNotificationRecipientType = "Approver"
+	UnifiedRoleManagementPolicyRuleNotificationRecipientTypeAdmin     UnifiedRoleManagementPolicyRuleNotificationRecipientType = "Admin"
+)
+
+type UnifiedRoleManagementPolicyRuleNotificationType = string
+
+const (
+	UnifiedRoleManagementPolicyRuleNotificationTypeEmail UnifiedRoleManagementPolicyRuleNotificationType = "Email"
+)
+
+type UnifiedRoleManagementPolicyRuleOperation = string
+
+const (
+	UnifiedRoleManagementPolicyRuleOperationAll        UnifiedRoleManagementPolicyRuleOperation = "All"
+	UnifiedRoleManagementPolicyRuleOperationActivate   UnifiedRoleManagementPolicyRuleOperation = "Activate"
+	UnifiedRoleManagementPolicyRuleOperationDeactivate UnifiedRoleManagementPolicyRuleOperation = "Deactivate"
+	UnifiedRoleManagementPolicyRuleOperationAssign     UnifiedRoleManagementPolicyRuleOperation = "Assign"
+	UnifiedRoleManagementPolicyRuleOperationUpdate     UnifiedRoleManagementPolicyRuleOperation = "Update"
+	UnifiedRoleManagementPolicyRuleOperationRemove     UnifiedRoleManagementPolicyRuleOperation = "Remove"
+	UnifiedRoleManagementPolicyRuleOperationExtend     UnifiedRoleManagementPolicyRuleOperation = "Extend"
+	UnifiedRoleManagementPolicyRuleOperationRenew      UnifiedRoleManagementPolicyRuleOperation = "Renew"
 )
 
 type UsageAuthMethod = string

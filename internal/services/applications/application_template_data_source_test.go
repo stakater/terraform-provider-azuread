@@ -1,10 +1,12 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package applications_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azuread/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azuread/internal/acceptance/check"
 )
@@ -21,7 +23,7 @@ func TestAccApplicationTemplateDataSource_byDisplayName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azuread_application_template", "test")
 	r := ApplicationTemplateDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.byDisplayName(data),
 			Check:  r.testCheck(data),
@@ -33,7 +35,7 @@ func TestAccApplicationTemplateDataSource_byTemplateId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azuread_application_template", "test")
 	r := ApplicationTemplateDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.byTemplateId(data),
 			Check:  r.testCheck(data),
@@ -41,8 +43,8 @@ func TestAccApplicationTemplateDataSource_byTemplateId(t *testing.T) {
 	})
 }
 
-func (ApplicationTemplateDataSource) testCheck(data acceptance.TestData) resource.TestCheckFunc {
-	return resource.ComposeTestCheckFunc(
+func (ApplicationTemplateDataSource) testCheck(data acceptance.TestData) acceptance.TestCheckFunc {
+	return acceptance.ComposeTestCheckFunc(
 		check.That(data.ResourceName).Key("template_id").HasValue(testApplicationTemplateId),
 		check.That(data.ResourceName).Key("display_name").HasValue(testApplicationTemplateDisplayName),
 		check.That(data.ResourceName).Key("categories.#").Exists(),

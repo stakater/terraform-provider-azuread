@@ -28,11 +28,13 @@ data "azuread_group" "example" {
 The following arguments are supported:
 
 * `display_name` - (Optional) The display name for the group.
+* `include_transitive_members` - (Optional) Whether to include transitive members (a flat list of all nested members). Defaults to `false`.
+* `mail_nickname` - (Optional) The mail alias for the group, unique in the organisation.
 * `mail_enabled` - (Optional) Whether the group is mail-enabled.
 * `object_id` - (Optional) Specifies the object ID of the group.
 * `security_enabled` - (Optional) Whether the group is a security group.
 
-~> One of `display_name` or `object_id` must be specified.
+~> One of `display_name`, `object_id` or `mail_nickname` must be specified.
 
 ## Attributes Reference
 
@@ -51,7 +53,7 @@ The following attributes are exported:
 * `mail` - The SMTP address for the group.
 * `mail_enabled` - Whether the group is mail-enabled.
 * `mail_nickname` - The mail alias for the group, unique in the organisation.
-* `members` - List of object IDs of the group members.
+* `members` - List of object IDs of the group members. When `include_transitive_members` is `true`, contains a list of object IDs of all transitive group members.
 * `onpremises_domain_name` - The on-premises FQDN, also called dnsDomainName, synchronised from the on-premises directory when Azure AD Connect is used.
 * `onpremises_group_type` - The on-premises group type that the AAD group will be written as, when writeback is enabled. Possible values are `UniversalDistributionGroup`, `UniversalMailEnabledSecurityGroup`, or `UniversalSecurityGroup`.
 * `onpremises_netbios_name` - The on-premises NetBIOS name, synchronised from the on-premises directory when Azure AD Connect is used.
@@ -74,3 +76,9 @@ The following attributes are exported:
 
 * `enabled` - Whether rule processing is "On" (true) or "Paused" (false).
 * `rule` - The rule that determines membership of this group.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `create` - (Defaults to 5 minutes) Used when creating the resource.

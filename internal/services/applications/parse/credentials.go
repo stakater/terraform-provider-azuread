@@ -1,9 +1,14 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
 	"fmt"
 	"strings"
 )
+
+// TODO: Remove this legacy ID in v3.0
 
 type CredentialId struct {
 	ObjectId string

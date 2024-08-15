@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package testclient
 
 import (
@@ -35,7 +38,7 @@ func Build(tenantId string) (*clients.Client, error) {
 		}
 
 		if metadataHost != "" {
-			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost), envName); err != nil {
+			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost)); err != nil {
 				return nil, fmt.Errorf("building test client: %+v", err)
 			}
 		} else if env, err = environments.FromName(envName); err != nil {

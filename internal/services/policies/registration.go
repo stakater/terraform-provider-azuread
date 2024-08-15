@@ -1,7 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package policies
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azuread/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azuread/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
@@ -9,6 +13,11 @@ type Registration struct{}
 // Name is the name of this Service
 func (r Registration) Name() string {
 	return "Policies"
+}
+
+// AssociatedGitHubLabel is the issue/PR label which can be applied to PRs that include changes to this service package
+func (r Registration) AssociatedGitHubLabel() string {
+	return "feature/policies"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
@@ -19,13 +28,28 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{}
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
-		"azuread_claims_mapping_policy": claimsMappingPolicyResource(),
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+	return map[string]*pluginsdk.Resource{
+		"azuread_authentication_strength_policy": authenticationStrengthPolicyResource(),
+		"azuread_claims_mapping_policy":          claimsMappingPolicyResource(),
+	}
+}
+
+// DataSources returns the typed DataSources supported by this service
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{
+		GroupRoleManagementPolicyDataSource{},
+	}
+}
+
+// Resources returns the typed Resources supported by this service
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		GroupRoleManagementPolicyResource{},
 	}
 }

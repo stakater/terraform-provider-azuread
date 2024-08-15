@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import "fmt"
@@ -7,8 +10,8 @@ type ApplicationPreAuthorizedId struct {
 	AppId    string
 }
 
-func NewApplicationPreAuthorizedID(objectId, appId string) ApplicationPreAuthorizedId {
-	return ApplicationPreAuthorizedId{
+func NewApplicationPreAuthorizedID(objectId, appId string) *ApplicationPreAuthorizedId {
+	return &ApplicationPreAuthorizedId{
 		ObjectId: objectId,
 		AppId:    appId,
 	}

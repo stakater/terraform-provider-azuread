@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package clients
 
 import (
@@ -24,6 +27,7 @@ import (
 	invitations "github.com/hashicorp/terraform-provider-azuread/internal/services/invitations/client"
 	policies "github.com/hashicorp/terraform-provider-azuread/internal/services/policies/client"
 	serviceprincipals "github.com/hashicorp/terraform-provider-azuread/internal/services/serviceprincipals/client"
+	synchronization "github.com/hashicorp/terraform-provider-azuread/internal/services/synchronization/client"
 	userflows "github.com/hashicorp/terraform-provider-azuread/internal/services/userflows/client"
 	users "github.com/hashicorp/terraform-provider-azuread/internal/services/users/client"
 )
@@ -51,6 +55,7 @@ type Client struct {
 	Invitations         *invitations.Client
 	Policies            *policies.Client
 	ServicePrincipals   *serviceprincipals.Client
+	Synchronization     *synchronization.Client
 	UserFlows           *userflows.Client
 	Users               *users.Client
 }
@@ -69,6 +74,7 @@ func (client *Client) build(ctx context.Context, o *common.ClientOptions) error 
 	client.Invitations = invitations.NewClient(o)
 	client.Policies = policies.NewClient(o)
 	client.ServicePrincipals = serviceprincipals.NewClient(o)
+	client.Synchronization = synchronization.NewClient(o)
 	client.UserFlows = userflows.NewClient(o)
 	client.Users = users.NewClient(o)
 
@@ -85,11 +91,12 @@ func (client *Client) build(ctx context.Context, o *common.ClientOptions) error 
 
 	// Log the claims for debugging
 	claimsJson, err := json.Marshal(client.Claims)
-	if err != nil {
+	switch {
+	case err != nil:
 		log.Printf("[DEBUG] AzureAD Provider could not marshal access token claims for log outout")
-	} else if claimsJson == nil {
+	case claimsJson == nil:
 		log.Printf("[DEBUG] AzureAD Provider marshaled access token claims was nil")
-	} else {
+	default:
 		log.Printf("[DEBUG] AzureAD Provider access token claims: %s", claimsJson)
 	}
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package helpers
 
 import (
@@ -11,9 +14,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azuread/internal/utils"
+	"github.com/hashicorp/terraform-provider-azuread/internal/tf/pluginsdk"
 	"github.com/manicminer/hamilton/msgraph"
 )
 
@@ -84,7 +87,7 @@ func GetTokenSigningCertificateThumbprint(certByte []byte) (string, error) {
 	return buf.String(), nil
 }
 
-func KeyCredentialForResource(d *schema.ResourceData) (*msgraph.KeyCredential, error) {
+func KeyCredentialForResource(d *pluginsdk.ResourceData) (*msgraph.KeyCredential, error) {
 	keyType := d.Get("type").(string)
 	value := d.Get("value").(string)
 
@@ -138,10 +141,10 @@ func KeyCredentialForResource(d *schema.ResourceData) (*msgraph.KeyCredential, e
 	}
 
 	credential := msgraph.KeyCredential{
-		KeyId: utils.String(keyId),
+		KeyId: pointer.To(keyId),
 		Type:  keyType,
 		Usage: msgraph.KeyCredentialUsageVerify,
-		Key:   utils.String(encodedValue),
+		Key:   pointer.To(encodedValue),
 	}
 
 	if v, ok := d.GetOk("start_date"); ok {
@@ -182,15 +185,14 @@ func KeyCredentialForResource(d *schema.ResourceData) (*msgraph.KeyCredential, e
 	return &credential, nil
 }
 
-func PasswordCredentialForResource(d *schema.ResourceData) (*msgraph.PasswordCredential, error) {
+func PasswordCredential(in map[string]interface{}) (*msgraph.PasswordCredential, error) {
 	credential := msgraph.PasswordCredential{}
 
-	// display_name, start_date and end_date support intentionally remains for if/when the API supports user-specified values for these
-	if v, ok := d.GetOk("display_name"); ok {
-		credential.DisplayName = utils.String(v.(string))
+	if v, ok := in["display_name"]; ok {
+		credential.DisplayName = pointer.To(v.(string))
 	}
 
-	if v, ok := d.GetOk("start_date"); ok {
+	if v, ok := in["start_date"]; ok && v.(string) != "" {
 		startDate, err := time.Parse(time.RFC3339, v.(string))
 		if err != nil {
 			return nil, CredentialError{str: fmt.Sprintf("Unable to parse the provided start date %q: %+v", v, err), attr: "start_date"}
@@ -198,31 +200,44 @@ func PasswordCredentialForResource(d *schema.ResourceData) (*msgraph.PasswordCre
 		credential.StartDateTime = &startDate
 	}
 
-	var endDate *time.Time
-	if v, ok := d.GetOk("end_date"); ok && v.(string) != "" {
+	if v, ok := in["end_date"]; ok && v.(string) != "" {
 		var err error
 		expiry, err := time.Parse(time.RFC3339, v.(string))
 		if err != nil {
 			return nil, CredentialError{str: fmt.Sprintf("Unable to parse the provided end date %q: %+v", v, err), attr: "end_date"}
 		}
-		endDate = &expiry
-	} else if v, ok := d.GetOk("end_date_relative"); ok && v.(string) != "" {
-		d, err := time.ParseDuration(v.(string))
-		if err != nil {
-			return nil, CredentialError{str: fmt.Sprintf("Unable to parse `end_date_relative` (%q) as a duration", v), attr: "end_date_relative"}
-		}
 
-		if credential.StartDateTime == nil {
-			expiry := time.Now().Add(d)
-			endDate = &expiry
-		} else {
-			expiry := credential.StartDateTime.Add(d)
-			endDate = &expiry
-		}
+		credential.EndDateTime = &expiry
 	}
-	if endDate != nil {
-		credential.EndDateTime = endDate
+
+	if v, ok := in["key_id"]; ok && v.(string) != "" {
+		credential.KeyId = pointer.To(v.(string))
+	}
+
+	if v, ok := in["value"]; ok && v.(string) != "" {
+		credential.SecretText = pointer.To(v.(string))
 	}
 
 	return &credential, nil
+}
+
+func PasswordCredentialForResource(d *pluginsdk.ResourceData) (*msgraph.PasswordCredential, error) {
+	data := make(map[string]interface{})
+
+	// display_name, start_date and end_date support intentionally remains for if/when the API supports user-specified values for these
+	if v, ok := d.GetOk("display_name"); ok {
+		data["display_name"] = v
+	}
+
+	if v, ok := d.GetOk("start_date"); ok {
+		data["start_date"] = v
+	}
+
+	if v, ok := d.GetOk("end_date"); ok && v.(string) != "" {
+		data["end_date"] = v
+	} else if v, ok := d.GetOk("end_date_relative"); ok && v.(string) != "" {
+		data["end_date_relative"] = v
+	}
+
+	return PasswordCredential(data)
 }

@@ -36,7 +36,7 @@ The following arguments are supported:
 * `company_name` - (Optional) The company name which the user is associated. This property can be useful for describing the company that an external user comes from.
 * `consent_provided_for_minor` - (Optional) Whether consent has been obtained for minors. Supported values are `Granted`, `Denied` and `NotRequired`. Omit this property or specify a blank string to unset.
 * `cost_center` - (Optional) The cost center associated with the user.
-* `country` - (Optional) The country/region in which the user is located, e.g. `US` or `UK`.
+* `country` - (Optional) The country/region in which the user is located. Examples include: `NO`, `JP`, and `GB`.
 * `department` - (Optional) The name for the department in which the user works.
 * `disable_password_expiration` - (Optional) Whether the user's password is exempt from expiring. Defaults to `false`.
 * `disable_strong_password` - (Optional) Whether the user is allowed weaker passwords than the default policy to be specified. Defaults to `false`.
@@ -84,6 +84,15 @@ In addition to all arguments above, the following attributes are exported:
 * `onpremises_user_principal_name` - The on-premise user principal name of the user.
 * `proxy_addresses` - List of email addresses for the user that direct to the same mailbox.
 * `user_type` - The user type in the directory. Possible values are `Guest` or `Member`.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `create` - (Defaults to 5 minutes) Used when creating the resource.
+* `read` - (Defaults to 5 minutes) Used when retrieving the resource.
+* `update` - (Defaults to 5 minutes) Used when updating the resource.
+* `delete` - (Defaults to 5 minutes) Used when deleting the resource.
 
 ## Import
 

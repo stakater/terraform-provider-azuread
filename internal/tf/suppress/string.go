@@ -1,11 +1,14 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package suppress
 
 import (
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azuread/internal/tf/pluginsdk"
 )
 
-func CaseDifference(_, old, new string, _ *schema.ResourceData) bool {
+func CaseDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	return strings.EqualFold(old, new)
 }

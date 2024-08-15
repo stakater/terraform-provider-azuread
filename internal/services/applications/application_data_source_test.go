@@ -1,10 +1,12 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package applications_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azuread/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azuread/internal/acceptance/check"
 )
@@ -15,7 +17,7 @@ func TestAccApplicationDataSource_byObjectId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azuread_application", "test")
 	r := ApplicationDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.objectId(data),
 			Check:  r.testCheck(data),
@@ -23,13 +25,25 @@ func TestAccApplicationDataSource_byObjectId(t *testing.T) {
 	})
 }
 
-func TestAccApplicationDataSource_byApplicationId(t *testing.T) {
+func TestAccApplicationDataSource_byApplicationIdDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azuread_application", "test")
 	r := ApplicationDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.applicationId(data),
+			Config: r.applicationIdDeprecated(data),
+			Check:  r.testCheck(data),
+		},
+	})
+}
+
+func TestAccApplicationDataSource_byClientId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azuread_application", "test")
+	r := ApplicationDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.clientId(data),
 			Check:  r.testCheck(data),
 		},
 	})
@@ -39,7 +53,7 @@ func TestAccApplicationDataSource_byDisplayName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azuread_application", "test")
 	r := ApplicationDataSource{}
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.displayName(data),
 			Check:  r.testCheck(data),
@@ -47,9 +61,22 @@ func TestAccApplicationDataSource_byDisplayName(t *testing.T) {
 	})
 }
 
-func (ApplicationDataSource) testCheck(data acceptance.TestData) resource.TestCheckFunc {
-	return resource.ComposeTestCheckFunc(
+func TestAccApplicationDataSource_byIdentifierUri(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azuread_application", "test")
+	r := ApplicationDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.identifierUri(data),
+			Check:  r.testCheck(data),
+		},
+	})
+}
+
+func (ApplicationDataSource) testCheck(data acceptance.TestData) acceptance.TestCheckFunc {
+	return acceptance.ComposeTestCheckFunc(
 		check.That(data.ResourceName).Key("application_id").IsUuid(),
+		check.That(data.ResourceName).Key("client_id").IsUuid(),
 		check.That(data.ResourceName).Key("object_id").IsUuid(),
 		check.That(data.ResourceName).Key("api.0.oauth2_permission_scopes.#").HasValue("2"),
 		check.That(data.ResourceName).Key("app_roles.#").HasValue("2"),
@@ -86,12 +113,22 @@ data "azuread_application" "test" {
 `, ApplicationResource{}.complete(data))
 }
 
-func (ApplicationDataSource) applicationId(data acceptance.TestData) string {
+func (ApplicationDataSource) applicationIdDeprecated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
 data "azuread_application" "test" {
   application_id = upper(azuread_application.test.application_id)
+}
+`, ApplicationResource{}.complete(data))
+}
+
+func (ApplicationDataSource) clientId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+data "azuread_application" "test" {
+  client_id = upper(azuread_application.test.client_id)
 }
 `, ApplicationResource{}.complete(data))
 }
@@ -102,6 +139,16 @@ func (ApplicationDataSource) displayName(data acceptance.TestData) string {
 
 data "azuread_application" "test" {
   display_name = upper(azuread_application.test.display_name)
+}
+`, ApplicationResource{}.complete(data))
+}
+
+func (ApplicationDataSource) identifierUri(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+data "azuread_application" "test" {
+  identifier_uri = tolist(azuread_application.test.identifier_uris)[0]
 }
 `, ApplicationResource{}.complete(data))
 }

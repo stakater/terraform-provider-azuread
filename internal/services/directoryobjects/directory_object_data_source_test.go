@@ -1,10 +1,12 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package directoryobjects_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-provider-azuread/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azuread/internal/acceptance/check"
 )
@@ -14,10 +16,10 @@ type PrincipalTypeDataSource struct{}
 func TestAccPrincipalTypeDataSource_groupByObjectId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azuread_directory_object", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: PrincipalTypeDataSource{}.objectTypeFromGroup(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("type").HasValue("Group"),
 			),
 		},
@@ -27,10 +29,10 @@ func TestAccPrincipalTypeDataSource_groupByObjectId(t *testing.T) {
 func TestAccPrincipalTypeDataSource_userByObjectId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azuread_directory_object", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: PrincipalTypeDataSource{}.objectTypeFromUser(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("type").HasValue("User"),
 			),
 		},
@@ -40,10 +42,10 @@ func TestAccPrincipalTypeDataSource_userByObjectId(t *testing.T) {
 func TestAccPrincipalTypeDataSource_servicePrincipalByObjectId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azuread_directory_object", "test")
 
-	data.DataSourceTest(t, []resource.TestStep{
+	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: PrincipalTypeDataSource{}.objectTypeFromServicePrincipal(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("type").HasValue("ServicePrincipal"),
 			),
 		},

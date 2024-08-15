@@ -1,11 +1,14 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package identitygovernance
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
-	"github.com/hashicorp/terraform-provider-azuread/internal/utils"
 	"github.com/manicminer/hamilton/msgraph"
 )
 
@@ -16,7 +19,7 @@ func expandRequestorSettings(input []interface{}) *msgraph.RequestorSettings {
 	in := input[0].(map[string]interface{})
 	result := msgraph.RequestorSettings{
 		ScopeType:      in["scope_type"].(string),
-		AcceptRequests: utils.Bool(in["requests_accepted"].(bool)),
+		AcceptRequests: pointer.To(in["requests_accepted"].(bool)),
 	}
 	result.AllowedRequestors = expandUserSets(in["requestor"].([]interface{}))
 
@@ -43,9 +46,9 @@ func expandApprovalSettings(input []interface{}) *msgraph.ApprovalSettings {
 	in := input[0].(map[string]interface{})
 
 	result := msgraph.ApprovalSettings{
-		IsApprovalRequired:               utils.Bool(in["approval_required"].(bool)),
-		IsApprovalRequiredForExtension:   utils.Bool(in["approval_required_for_extension"].(bool)),
-		IsRequestorJustificationRequired: utils.Bool(in["requestor_justification_required"].(bool)),
+		IsApprovalRequired:               pointer.To(in["approval_required"].(bool)),
+		IsApprovalRequiredForExtension:   pointer.To(in["approval_required_for_extension"].(bool)),
+		IsRequestorJustificationRequired: pointer.To(in["requestor_justification_required"].(bool)),
 	}
 
 	approvalStages := make([]msgraph.ApprovalStage, 0)
@@ -53,10 +56,10 @@ func expandApprovalSettings(input []interface{}) *msgraph.ApprovalSettings {
 		v_map := v.(map[string]interface{})
 
 		stage := msgraph.ApprovalStage{
-			ApprovalStageTimeOutInDays:      utils.Int32(int32(v_map["approval_timeout_in_days"].(int))),
-			EscalationTimeInMinutes:         utils.Int32(int32(v_map["enable_alternative_approval_in_days"].(int) * 24 * 60)),
-			IsApproverJustificationRequired: utils.Bool(v_map["approver_justification_required"].(bool)),
-			IsEscalationEnabled:             utils.Bool(v_map["alternative_approval_enabled"].(bool)),
+			ApprovalStageTimeOutInDays:      pointer.To(int32(v_map["approval_timeout_in_days"].(int))),
+			EscalationTimeInMinutes:         pointer.To(int32(v_map["enable_alternative_approval_in_days"].(int) * 24 * 60)),
+			IsApproverJustificationRequired: pointer.To(v_map["approver_justification_required"].(bool)),
+			IsEscalationEnabled:             pointer.To(v_map["alternative_approval_enabled"].(bool)),
 		}
 
 		stage.PrimaryApprovers = expandUserSets(v_map["primary_approver"].([]interface{}))
@@ -108,10 +111,10 @@ func expandAssignmentReviewSettings(input []interface{}) (*msgraph.AssignmentRev
 
 	result := msgraph.AssignmentReviewSettings{
 		AccessReviewTimeoutBehavior:     in["access_review_timeout_behavior"].(string),
-		DurationInDays:                  utils.Int32(int32(in["duration_in_days"].(int))),
-		IsAccessRecommendationEnabled:   utils.Bool(in["access_recommendation_enabled"].(bool)),
-		IsApprovalJustificationRequired: utils.Bool(in["approver_justification_required"].(bool)),
-		IsEnabled:                       utils.Bool(in["enabled"].(bool)),
+		DurationInDays:                  pointer.To(int32(in["duration_in_days"].(int))),
+		IsAccessRecommendationEnabled:   pointer.To(in["access_recommendation_enabled"].(bool)),
+		IsApprovalJustificationRequired: pointer.To(in["approver_justification_required"].(bool)),
+		IsEnabled:                       pointer.To(in["enabled"].(bool)),
 		RecurrenceType:                  in["review_frequency"].(string),
 		ReviewerType:                    in["review_type"].(string),
 	}
@@ -127,6 +130,17 @@ func expandAssignmentReviewSettings(input []interface{}) (*msgraph.AssignmentRev
 	}
 
 	result.Reviewers = expandUserSets(in["reviewer"].([]interface{}))
+
+	if result.AccessReviewTimeoutBehavior == "" &&
+		(result.DurationInDays == nil || *result.DurationInDays == 0) &&
+		(result.IsAccessRecommendationEnabled == nil || !*result.IsAccessRecommendationEnabled) &&
+		(result.IsApprovalJustificationRequired == nil || !*result.IsApprovalJustificationRequired) &&
+		(result.IsEnabled == nil || !*result.IsEnabled) &&
+		result.RecurrenceType == "" &&
+		result.ReviewerType == "" &&
+		(result.Reviewers == nil || len(*result.Reviewers) == 0) {
+		return nil, nil
+	}
 
 	return &result, nil
 }
@@ -156,10 +170,10 @@ func expandUserSets(input []interface{}) *[]msgraph.UserSet {
 		oDataType, needId := userSetODataType(v_map["subject_type"].(string))
 		userSet := msgraph.UserSet{
 			ODataType: oDataType,
-			IsBackup:  utils.Bool(v_map["backup"].(bool)),
+			IsBackup:  pointer.To(v_map["backup"].(bool)),
 		}
 		if needId {
-			userSet.ID = utils.String(v_map["object_id"].(string))
+			userSet.ID = pointer.To(v_map["object_id"].(string))
 		}
 
 		userSets = append(userSets, userSet)
@@ -230,36 +244,45 @@ func userSetShortType(in string) *string {
 func expandAccessPackageQuestions(questions []interface{}) *[]msgraph.AccessPackageQuestion {
 	result := make([]msgraph.AccessPackageQuestion, 0)
 
-	for _, v := range questions {
-		v_map := v.(map[string]interface{})
-		v_text_list := v_map["text"].([]interface{})
-		v_text := v_text_list[0].(map[string]interface{})
+	for _, questionRaw := range questions {
+		question := questionRaw.(map[string]interface{})
+		textList := question["text"].([]interface{})
 
-		q := msgraph.AccessPackageQuestion{
-			IsRequired: utils.Bool(v_map["required"].(bool)),
-			Sequence:   utils.Int32(int32(v_map["sequence"].(int))),
-			Text:       expandAccessPackageLocalizedContent(v_text),
+		if len(textList) == 0 {
+			continue
 		}
 
-		v_map_choices := v_map["choice"].([]interface{})
-		q.ODataType = utils.String(odata.TypeAccessPackageTextInputQuestion)
-		if len(v_map_choices) > 0 {
-			q.ODataType = utils.String(odata.TypeAccessPackageMultipleChoiceQuestion)
+		text := textList[0].(map[string]interface{})
+
+		resultQuestion := msgraph.AccessPackageQuestion{
+			ODataType:  pointer.To(odata.TypeAccessPackageTextInputQuestion),
+			IsRequired: pointer.To(question["required"].(bool)),
+			Sequence:   pointer.To(int32(question["sequence"].(int))),
+			Text:       expandAccessPackageLocalizedContent(text),
+		}
+
+		if choicesRaw := question["choice"].([]interface{}); len(choicesRaw) > 0 {
+			resultQuestion.ODataType = pointer.To(odata.TypeAccessPackageMultipleChoiceQuestion)
 			choices := make([]msgraph.AccessPackageMultipleChoiceQuestions, 0)
 
-			for _, c := range v_map_choices {
-				c_map := c.(map[string]interface{})
-				c_map_display_value := c_map["display_value"].([]interface{})
+			for _, choiceRaw := range choicesRaw {
+				choice := choiceRaw.(map[string]interface{})
+				displayValue := make(map[string]interface{})
+				if v := choice["display_value"].([]interface{}); len(v) > 0 {
+					displayValue = v[0].(map[string]interface{})
+				}
 				choices = append(choices, msgraph.AccessPackageMultipleChoiceQuestions{
-					ActualValue:  utils.String(c_map["actual_value"].(string)),
-					DisplayValue: expandAccessPackageLocalizedContent(c_map_display_value[0].(map[string]interface{})),
+					ActualValue:  pointer.To(choice["actual_value"].(string)),
+					DisplayValue: expandAccessPackageLocalizedContent(displayValue),
 				})
 			}
 
-			q.Choices = &choices
+			if len(choices) > 0 {
+				resultQuestion.Choices = pointer.To(choices)
+			}
 		}
 
-		result = append(result, q)
+		result = append(result, resultQuestion)
 	}
 
 	return &result
@@ -301,8 +324,12 @@ func flattenAccessPackageQuestions(input *[]msgraph.AccessPackageQuestion) []map
 }
 
 func expandAccessPackageLocalizedContent(input map[string]interface{}) *msgraph.AccessPackageLocalizedContent {
+	if len(input) == 0 {
+		return nil
+	}
+
 	result := msgraph.AccessPackageLocalizedContent{
-		DefaultText: utils.String(input["default_text"].(string)),
+		DefaultText: pointer.To(input["default_text"].(string)),
 	}
 
 	texts := make([]msgraph.AccessPackageLocalizedTexts, 0)
@@ -310,8 +337,8 @@ func expandAccessPackageLocalizedContent(input map[string]interface{}) *msgraph.
 	for _, v := range input["localized_text"].([]interface{}) {
 		v_map := v.(map[string]interface{})
 		texts = append(texts, msgraph.AccessPackageLocalizedTexts{
-			LanguageCode: utils.String(v_map["language_code"].(string)),
-			Text:         utils.String(v_map["content"].(string)),
+			LanguageCode: pointer.To(v_map["language_code"].(string)),
+			Text:         pointer.To(v_map["content"].(string)),
 		})
 	}
 

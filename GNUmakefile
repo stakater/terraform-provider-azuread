@@ -16,10 +16,14 @@ tools:
 	go install github.com/bflad/tfproviderdocs@latest
 	go install github.com/katbyte/terrafmt@latest
 	go install mvdan.cc/gofumpt@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$$(go env GOPATH || $$GOPATH)"/bin v1.49.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$$(go env GOPATH || $$GOPATH)"/bin v1.54.2
 
 build: fmtcheck
 	go install
+
+debug: fmtcheck
+	go build -gcflags="all=-N -l" -trimpath -o terraform-provider-azuread
+	dlv exec --listen=:51000 --headless=true --api-version=2 --accept-multiclient --continue terraform-provider-azuread -- -debug
 
 fumpt:
 	@echo "==> Fixing source code with gofmt..."
@@ -34,6 +38,10 @@ fmt:
 # Currently required by tf-deploy compile
 fmtcheck:
 	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
+
+generate:
+	go generate ./internal/services/...
+	go generate ./internal/provider/
 
 goimports:
 	@echo "==> Fixing imports code with goimports..."
@@ -69,11 +77,15 @@ depscheck:
 	@git diff --compact-summary --exit-code -- vendor || \
 		(echo; echo "Unexpected difference in vendor/ directory. Run 'go mod vendor' command or revert any go.mod/go.sum/vendor changes and commit."; exit 1)
 
+gencheck:
+	@echo "==> Generating..."
+	@make generate
+	@echo "==> Comparing generated code to committed code..."
+	@git diff --compact-summary --exit-code -- ./ || \
+    		(echo; echo "Unexpected difference in generated code. Run 'make generate' to update the generated code and commit."; exit 1)
 
 test: fmtcheck
-	go test -i $(TEST) || exit 1
-	echo $(TEST) | \
-		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=10
+	@TEST=$(TEST) ./scripts/run-test.sh
 
 testacc: fmtcheck
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 180m -ldflags="-X=github.com/hashicorp/terraform-provider-azuread/version.ProviderVersion=acc"

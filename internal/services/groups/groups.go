@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package groups
 
 import (
@@ -5,7 +8,6 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
-	"time"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/manicminer/hamilton/msgraph"
@@ -14,7 +16,6 @@ import (
 func groupDefaultMailNickname() string {
 	charSet := "0123456789abcdef"
 	result := make([]byte, 9)
-	rand.Seed(time.Now().UTC().UnixNano())
 	for i := 0; i < 9; i++ {
 		result[i] = charSet[rand.Intn(len(charSet))]
 	}

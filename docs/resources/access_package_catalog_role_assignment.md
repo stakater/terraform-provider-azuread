@@ -52,10 +52,19 @@ In addition to all arguments above, the following attributes are exported:
 
 *No additional attributes are exported*
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `create` - (Defaults to 5 minutes) Used when creating the resource.
+* `read` - (Defaults to 5 minutes) Used when retrieving the resource.
+* `update` - (Defaults to 5 minutes) Used when updating the resource.
+* `delete` - (Defaults to 5 minutes) Used when deleting the resource.
+
 ## Import
 
 Catalog role assignments can be imported using the ID of the assignment, e.g.
 
 ```shell
-terraform import azuread_access_package_catalog_role_assignment.test 00000000-0000-0000-0000-000000000000
+terraform import azuread_access_package_catalog_role_assignment.example 00000000-0000-0000-0000-000000000000
 ```

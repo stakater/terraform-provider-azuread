@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package identitygovernance_test
 
 import (
@@ -6,13 +9,12 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azuread/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azuread/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azuread/internal/clients"
-	"github.com/hashicorp/terraform-provider-azuread/internal/utils"
 )
 
 type AccessPackageAssignmentPolicyResource struct{}
@@ -21,10 +23,10 @@ func TestAccAccessPackageAssignmentPolicy_simple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azuread_access_package_assignment_policy", "test")
 	r := AccessPackageAssignmentPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.simple(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -36,10 +38,10 @@ func TestAccAccessPackageAssignmentPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azuread_access_package_assignment_policy", "test")
 	r := AccessPackageAssignmentPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -51,10 +53,10 @@ func TestAccAccessPackageAssignmentPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azuread_access_package_assignment_policy", "test")
 	r := AccessPackageAssignmentPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -66,28 +68,57 @@ func TestAccAccessPackageAssignmentPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azuread_access_package_assignment_policy", "test")
 	r := AccessPackageAssignmentPolicyResource{}
 
-	data.ResourceTest(t, r, []resource.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.simple(data),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccAccessPackageAssignmentPolicy_removeQuestion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azuread_access_package_assignment_policy", "test")
+	r := AccessPackageAssignmentPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("access_package_id"),
+		{
+			Config: r.basicWithoutQuestion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("access_package_id"),
 	})
 }
 
@@ -99,11 +130,11 @@ func (AccessPackageAssignmentPolicyResource) Exists(ctx context.Context, clients
 	_, status, err := client.Get(ctx, state.ID, odata.Query{})
 	if err != nil {
 		if status == http.StatusNotFound {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("failed to retrieve Access package assignment policy with ID %q: %+v", state.ID, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (AccessPackageAssignmentPolicyResource) simple(data acceptance.TestData) string {
@@ -183,6 +214,59 @@ resource "azuread_access_package_assignment_policy" "test" {
     text {
       default_text = "hello, how are you?"
     }
+  }
+}
+`, data.RandomInteger)
+}
+
+func (AccessPackageAssignmentPolicyResource) basicWithoutQuestion(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azuread" {}
+
+resource "azuread_group" "test" {
+  display_name     = "test-group-%[1]d"
+  security_enabled = true
+}
+
+resource "azuread_access_package_catalog" "test_catalog" {
+  display_name = "testacc-asscess-assignment-%[1]d"
+  description  = "TestAcc Catalog %[1]d for access assignment policy"
+}
+
+resource "azuread_access_package" "test" {
+  display_name = "testacc-asscess-assignment-%[1]d"
+  description  = "TestAcc Access Package %[1]d for access assignment policy"
+  catalog_id   = azuread_access_package_catalog.test_catalog.id
+}
+
+resource "azuread_access_package_assignment_policy" "test" {
+  display_name      = "testacc-asscess-assignment-%[1]d"
+  description       = "TestAcc Access Package Assignnment Policy %[1]d"
+  duration_in_days  = 90
+  access_package_id = azuread_access_package.test.id
+
+  requestor_settings {
+    scope_type = "AllExistingDirectoryMemberUsers"
+  }
+
+  approval_settings {
+    approval_required = true
+    approval_stage {
+      approval_timeout_in_days = 14
+
+      primary_approver {
+        object_id    = azuread_group.test.object_id
+        subject_type = "groupMembers"
+      }
+    }
+  }
+
+  assignment_review_settings {
+    enabled                        = true
+    review_frequency               = "weekly"
+    duration_in_days               = 3
+    review_type                    = "Self"
+    access_review_timeout_behavior = "keepAccess"
   }
 }
 `, data.RandomInteger)

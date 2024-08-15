@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package helpers
 
 import (
@@ -6,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-provider-azuread/internal/tf/pluginsdk"
 )
 
 type ChangeFunc func(ctx context.Context) (*bool, error)
@@ -18,7 +21,7 @@ func WaitForDeletion(ctx context.Context, f ChangeFunc) error {
 	}
 
 	timeout := time.Until(deadline)
-	_, err := (&resource.StateChangeConf{ //nolint:staticcheck
+	_, err := (&pluginsdk.StateChangeConf{ //nolint:staticcheck
 		Pending:                   []string{"Waiting"},
 		Target:                    []string{"Deleted"},
 		Timeout:                   timeout,
@@ -53,7 +56,7 @@ func WaitForUpdate(ctx context.Context, f ChangeFunc) error {
 }
 
 func WaitForUpdateWithTimeout(ctx context.Context, timeout time.Duration, f ChangeFunc) (bool, error) {
-	res, err := (&resource.StateChangeConf{ //nolint:staticcheck
+	res, err := (&pluginsdk.StateChangeConf{ //nolint:staticcheck
 		Pending:                   []string{"Waiting"},
 		Target:                    []string{"Done"},
 		Timeout:                   timeout,
